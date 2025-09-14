@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leila's Hucky Smucky Fudge Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #F4A460 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .sand-texture {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 200px;
+            background: 
+                radial-gradient(circle at 20% 50%, #D2B48C 2px, transparent 2px),
+                radial-gradient(circle at 80% 50%, #DEB887 1px, transparent 1px),
+                linear-gradient(to top, #F4A460, #DEB887);
+            background-size: 15px 15px, 10px 10px, 100% 100%;
+            z-index: -1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            margin: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #8B4513;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .hucky-smucky {
+            font-size: 2rem;
+            color: #FF6B35;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #654321;
+        }
+
+        .game-stats {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin: 10px 20px;
+        }
+
+        .score, .timer {
+            display: inline-block;
+            font-size: 1.3rem;
+            color: #8B4513;
+            margin: 0 20px;
+            font-weight: bold;
+        }
+
+        .game-controls {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .start-btn {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #FF6B35, #FF8C00);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mobile-controls {
+            display: none;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 20px;
+        }
+
+        .control-btn {
+            font-size: 2.5rem;
+            padding: 20px 30px;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            transition: all 0.1s ease;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+            background: linear-gradient(45deg, #654321, #8B4513);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .game-area {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 20px auto;
+            background: rgba(135, 206, 235, 0.3);
+            border-radius: 20px;
+            border: 3px solid #8B4513;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .basket {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 2px solid #654321;
+            border-radius: 0 0 15px 15px;
+            transition: left 0.15s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .basket::before {
+            content: '🧺';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+        }
+
+        .falling-treat {
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            background: linear-gradient(45deg, #654321, #8B4513, #A0522D);
+            border: 1px solid #4A2C17;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: fall linear;
+        }
+
+        .falling-treat::before {
+            content: '🍫';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+        }
+
+        @keyframes fall {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(520px) rotate(360deg); }
+        }
+
+        .sand-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .sand-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #DEB887;
+            border-radius: 50%;
+            animation: float 3s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #FF6B35;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .celebration.show {
+            animation: celebrate 1s ease-out;
+        }
+
+        @keyframes celebrate {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+            
+            .instructions {
+                font-size: 1rem;
+                margin: 10px;
+                padding: 12px;
+            }
+            
+            .game-area {
+                width: 95vw;
+                height: 400px;
+                margin: 10px auto;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hucky-smucky {
+                font-size: 1.6rem;
+            }
+            
+            .header {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .game-stats {
+                margin: 5px 10px;
+                padding: 10px;
+            }
+            
+            .score, .timer {
+                font-size: 1.1rem;
+                margin: 0 10px;
+            }
+
+            .start-btn {
+                font-size: 1.3rem;
+                padding: 12px 25px;
+            }
+
+            .celebration {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .hucky-smucky {
+                font-size: 1.3rem;
+            }
+
+            .control-btn {
+                font-size: 2rem;
+                padding: 15px 25px;
+            }
+
+            .game-area {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sand-texture"></div>
+    <div class="sand-particles" id="sandParticles"></div>
+
+    <div class="header">
+        <h1>🍫 LEILA'S BEACH TREATS 🏖️</h1>
+        <div class="hucky-smucky">✨ HUCKY SMUCKY! ✨</div>
+    </div>
+
+    <div class="instructions">
+        🎮 <strong>Desktop:</strong> Use LEFT and RIGHT arrow keys to move your basket<br>
+        📱 <strong>Mobile:</strong> Use the control buttons below or swipe left/right on the game area<br>
+        🍫 Catch as many falling chocolate treats as you can in 60 seconds!
+    </div>
+
+    <div class="game-stats">
+        <div class="score">Treats Caught: <span id="scoreValue">0</span></div>
+        <div class="timer">Time: <span id="timerValue">60</span>s</div>
+    </div>
+
+    <div class="game-controls">
+        <button class="start-btn" id="startBtn">🚀 Start Hucky Smucky Game! 🚀</button>
+    </div>
+
+    <div class="mobile-controls">
+        <button class="control-btn" id="leftBtn">⬅️</button>
+        <button class="control-btn" id="rightBtn">➡️</button>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <div class="basket" id="basket"></div>
+    </div>
+
+    <div class="celebration" id="celebration">HUCKY SMUCKY!</div>
+
+    <script>
+        // Game state variables
+        const gameState = {
+            score: 0,
+            timeLeft: 60,
+            isActive: false,
+            basketPosition: 360,
+            gameTimer: null,
+            treatSpawnTimer: null,
+            fallingTreats: []
+        };
+
+        // DOM elements
+        const elements = {
+            score: document.getElementById('scoreValue'),
+            timer: document.getElementById('timerValue'),
+            celebration: document.getElementById('celebration'),
+            startBtn: document.getElementById('startBtn'),
+            basket: document.getElementById('basket'),
+            gameArea: document.getElementById('gameArea'),
+            leftBtn: document.getElementById('leftBtn'),
+            rightBtn: document.getElementById('rightBtn'),
+            sandParticles: document.getElementById('sandParticles')
+        };
+
+        // Configuration
+        const config = {
+            basketWidth: 80,
+            treatWidth: 30,
+            moveDistance: 25,
+            treatSpawnDesktop: 900,
+            treatSpawnMobile: 1200,
+            swipeThreshold: 30,
+            particleInterval: 500
+        };
+
+        // Initialize game
+        function initializeGame() {
+            calculateBasketPosition();
+            createSandParticles();
+            setupEventListeners();
+        }
+
+        // Calculate initial basket position
+        function calculateBasketPosition() {
+            const gameAreaWidth = elements.gameArea.offsetWidth;
+            gameState.basketPosition = Math.max(0, (gameAreaWidth - config.basketWidth) / 2);
+            elements.basket.style.left = gameState.basketPosition + 'px';
+        }
+
+        // Sand particle system
+        function createSandParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'sand-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 3 + 's';
+            elements.sandParticles.appendChild(particle);
+
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.remove();
+                }
+            }, 3000);
+        }
+
+        function createSandParticles() {
+            // Initial particles
+            for (let i = 0; i < 10; i++) {
+                setTimeout(createSandParticle, i * 300);
+            }
+            
+            // Continuous particle creation
+            setInterval(createSandParticle, config.particleInterval);
+        }
+
+        // Basket movement system
+        function moveBasket(direction) {
+            if (!gameState.isActive) return;
+            
+            const gameAreaWidth = elements.gameArea.offsetWidth;
+            
+            if (direction === 'left') {
+                gameState.basketPosition = Math.max(0, gameState.basketPosition - config.moveDistance);
+            } else if (direction === 'right') {
+                gameState.basketPosition = Math.min(gameAreaWidth - config.basketWidth, gameState.basketPosition + config.moveDistance);
+            }
+            
+            elements.basket.style.left = gameState.basketPosition + 'px';
+        }
+
+        // Input handling
+        function setupEventListeners() {
+            // Keyboard controls
+            document.addEventListener('keydown', (event) => {
+                if (!gameState.isActive) return;
+                
+                switch(event.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        event.preventDefault();
+                        moveBasket('left');
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        event.preventDefault();
+                        moveBasket('right');
+                        break;
+                }
+            });
+
+            // Mobile button controls
+            elements.leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                moveBasket('left');
+            });
+
+            elements.rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                moveBasket('right');
+            });
+
+            elements.leftBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                moveBasket('left');
+            });
+
+            elements.rightBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                moveBasket('right');
+            });
+
+            // Swipe controls
+            let touchStartX = 0;
+            
+            elements.gameArea.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            elements.gameArea.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const swipeDistance = touchStartX - touchEndX;
+                
+                if (Math.abs(swipeDistance) > config.swipeThreshold) {
+                    if (swipeDistance > 0) {
+                        moveBasket('left');
+                    } else {
+                        moveBasket('right');
+                    }
+                }
+            }, { passive: true });
+
+            // Start button
+            elements.startBtn.addEventListener('click', startGame);
+
+            // Window resize
+            window.addEventListener('resize', () => {
+                if (!gameState.isActive) {
+                    calculateBasketPosition();
+                }
+            });
+        }
+
+        // Treat creation and management
+        function createFallingTreat() {
+            if (!gameState.isActive) return;
+
+            const treat = document.createElement('div');
+            treat.className = 'falling-treat';
+            
+            const gameAreaWidth = elements.gameArea.offsetWidth;
+            const randomX = Math.random() * (gameAreaWidth - config.treatWidth);
+            treat.style.left = randomX + 'px';
+            treat.style.animationDuration = (2 + Math.random() * 2) + 's';
+            
+            elements.gameArea.appendChild(treat);
+            gameState.fallingTreats.push(treat);
+
+            startCollisionDetection(treat);
+        }
+
+        function startCollisionDetection(treat) {
+            const collisionInterval = setInterval(() => {
+                if (!treat.parentNode || !gameState.isActive) {
+                    clearInterval(collisionInterval);
+                    removeTreat(treat);
+                    return;
+                }
+
+                if (checkCollision(treat)) {
+                    handleTreatCatch(treat);
+                    clearInterval(collisionInterval);
+                    return;
+                }
+
+                if (isTreatOffScreen(treat)) {
+                    clearInterval(collisionInterval);
+                    removeTreat(treat);
+                }
+            }, 50);
+
+            // Safety cleanup
+            setTimeout(() => {
+                clearInterval(collisionInterval);
+                removeTreat(treat);
+            }, 6000);
+        }
+
+        function checkCollision(treat) {
+            const treatRect = treat.getBoundingClientRect();
+            const basketRect = elements.basket.getBoundingClientRect();
+            
+            return (
+                treatRect.bottom >= basketRect.top &&
+                treatRect.bottom <= basketRect.bottom + 30 &&
+                treatRect.left + treatRect.width/2 >= basketRect.left &&
+                treatRect.left + treatRect.width/2 <= basketRect.right
+            );
+        }
+
+        function isTreatOffScreen(treat) {
+            const treatRect = treat.getBoundingClientRect();
+            const gameAreaRect = elements.gameArea.getBoundingClientRect();
+            return treatRect.top > gameAreaRect.bottom;
+        }
+
+        function handleTreatCatch(treat) {
+            gameState.score++;
+            elements.score.textContent = gameState.score;
+            removeTreat(treat);
+            showCelebration("HUCKY SMUCKY!");
+            createCatchParticles();
+        }
+
+        function removeTreat(treat) {
+            if (treat.parentNode) {
+                treat.remove();
+            }
+            const index = gameState.fallingTreats.indexOf(treat);
+            if (index > -1) {
+                gameState.fallingTreats.splice(index, 1);
+            }
+        }
+
+        // Celebration system
+        function showCelebration(message, duration = 800) {
+            elements.celebration.textContent = message;
+            elements.celebration.classList.add('show');
+            setTimeout(() => {
+                elements.celebration.classList.remove('show');
+            }, duration);
+        }
+
+        function createCatchParticles() {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(createSandParticle, i * 100);
+            }
+        }
+
+        // Game flow
+        function startGame() {
+            resetGameState();
+            setupGameUI();
+            startGameTimers();
+            showCelebration("HUCKY SMUCKY TIME!", 1500);
+        }
+
+        function resetGameState() {
+            gameState.score = 0;
+            gameState.timeLeft = 60;
+            gameState.isActive = true;
+            
+            // Clear existing treats
+            gameState.fallingTreats.forEach(treat => removeTreat(treat));
+            gameState.fallingTreats = [];
+            
+            calculateBasketPosition();
+        }
+
+        function setupGameUI() {
+            elements.score.textContent = gameState.score;
+            elements.timer.textContent = gameState.timeLeft;
+            elements.startBtn.disabled = true;
+            elements.startBtn.textContent = 'Game in Progress...';
+        }
+
+        function startGameTimers() {
+            // Game countdown timer
+            gameState.gameTimer = setInterval(() => {
+                gameState.timeLeft--;
+                elements.timer.textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Treat spawning timer
+            const isMobile = window.innerWidth <= 768;
+            const spawnRate = isMobile ? config.treatSpawnMobile : config.treatSpawnDesktop;
+            gameState.treatSpawnTimer = setInterval(createFallingTreat, spawnRate);
+        }
+
+        function endGame() {
+            gameState.isActive = false;
+            clearInterval(gameState.gameTimer);
+            clearInterval(gameState.treatSpawnTimer);
+            
+            elements.startBtn.disabled = false;
+            elements.startBtn.textContent = '🚀 Play Again! 🚀';
+            
+            showFinalCelebration();
+        }
+
+        function showFinalCelebration() {
+            let message = getScoreMessage(gameState.score);
+            showCelebration(`${message} Final Score: ${gameState.score}`, 4000);
+        }
+
+        function getScoreMessage(score) {
+            if (score >= 40) return "INCREDIBLE CHAMPION!";
+            if (score >= 25) return "SUPER HUCKY SMUCKY!";
+            if (score >= 15) return "AWESOME JOB!";
+            if (score >= 5) return "GREAT TRY!";
+            return "NICE EFFORT!";
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initializeGame);
+    </script>
+</body>
+</html>
