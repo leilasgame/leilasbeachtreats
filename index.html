@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Leila's Hucky Smucky Fudge Adventure</title>
     <style>
         * {
@@ -18,6 +18,11 @@
             overflow-x: hidden;
             touch-action: manipulation;
             -webkit-font-smoothing: antialiased;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         .sand-texture {
@@ -118,43 +123,6 @@
             transform: none;
         }
 
-        .mobile-controls {
-            display: none;
-            justify-content: center;
-            gap: 30px;
-            margin: 15px 20px;
-        }
-
-        .control-btn {
-            font-size: 2.5rem;
-            padding: 20px 30px;
-            background: linear-gradient(45deg, #8B4513, #A0522D);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            user-select: none;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        .control-btn:active {
-            transform: scale(0.95);
-            background: linear-gradient(45deg, #654321, #8B4513);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-        }
-
-        .control-btn.pressed {
-            transform: scale(0.95);
-            background: linear-gradient(45deg, #654321, #8B4513);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-        }
-
         .game-area {
             position: relative;
             width: 800px;
@@ -165,6 +133,17 @@
             border: 3px solid #8B4513;
             overflow: hidden;
             backdrop-filter: blur(5px);
+            touch-action: none;
+        }
+
+        .basket-path {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 5;
+            cursor: pointer;
         }
 
         .basket {
@@ -175,8 +154,10 @@
             background: linear-gradient(45deg, #8B4513, #A0522D);
             border: 2px solid #654321;
             border-radius: 0 0 15px 15px;
-            transition: left 0.08s ease;
+            transition: left 0.15s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+            pointer-events: none;
         }
 
         .basket::before {
@@ -271,6 +252,68 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
 
+        .mobile-controls {
+            display: none;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        .control-btn {
+            font-size: 2.5rem;
+            padding: 20px 30px;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            transition: all 0.1s ease;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(45deg, #654321, #8B4513);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .control-btn.pressed {
+            transform: scale(0.95);
+            background: linear-gradient(45deg, #654321, #8B4513);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .tap-indicator {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 107, 53, 0.3);
+            border: 2px solid #FF6B35;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: tapPulse 0.6s ease-out;
+            z-index: 15;
+        }
+
+        @keyframes tapPulse {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
         /* Mobile Styles */
         @media (max-width: 768px) {
             .mobile-controls {
@@ -322,7 +365,7 @@
             }
 
             .basket {
-                transition: left 0.05s ease;
+                transition: left 0.1s ease;
             }
         }
 
@@ -345,14 +388,19 @@
             }
         }
 
-        /* Prevent text selection on mobile controls */
-        .mobile-controls, .control-btn {
+        /* Prevent text selection and zoom on mobile */
+        .mobile-controls, .control-btn, .game-area {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+
+        /* Prevent zoom on game area taps */
+        .game-area * {
+            touch-action: none;
         }
     </style>
 </head>
@@ -367,7 +415,7 @@
 
     <div class="instructions">
         🎮 <strong>Desktop:</strong> Use LEFT and RIGHT arrow keys to move your basket<br>
-        📱 <strong>Mobile:</strong> Tap or hold the control buttons below, or swipe left/right on the game area<br>
+        📱 <strong>Mobile:</strong> Tap where you want the basket to go, or use the control buttons below<br>
         🍫 Catch as many falling chocolate treats as you can in 60 seconds! <strong>NEW:</strong> All treats are now reachable!
     </div>
 
@@ -380,13 +428,14 @@
         <button class="start-btn" id="startBtn">🚀 Start Smart Hucky Smucky Game! 🚀</button>
     </div>
 
+    <div class="game-area" id="gameArea">
+        <div class="basket-path" id="basketPath"></div>
+        <div class="basket" id="basket"></div>
+    </div>
+
     <div class="mobile-controls">
         <button class="control-btn" id="leftBtn">⬅️</button>
         <button class="control-btn" id="rightBtn">➡️</button>
-    </div>
-
-    <div class="game-area" id="gameArea">
-        <div class="basket" id="basket"></div>
     </div>
 
     <div class="celebration" id="celebration">HUCKY SMUCKY!</div>
@@ -406,7 +455,9 @@
             moveInterval: null,
             lastTreatPosition: null,
             lastTreatTime: 0,
-            gameStartTime: 0
+            gameStartTime: 0,
+            targetPosition: null,
+            moveToTargetInterval: null
         };
 
         // DOM elements
@@ -417,6 +468,7 @@
             startBtn: document.getElementById('startBtn'),
             basket: document.getElementById('basket'),
             gameArea: document.getElementById('gameArea'),
+            basketPath: document.getElementById('basketPath'),
             leftBtn: document.getElementById('leftBtn'),
             rightBtn: document.getElementById('rightBtn'),
             sandParticles: document.getElementById('sandParticles')
@@ -437,7 +489,8 @@
             maxBasketSpeed: 35,
             reachabilityBuffer: 40,
             minSpacing: 120,
-            difficultyProgression: 0.02
+            difficultyProgression: 0.02,
+            tapMoveSpeed: 15
         };
 
         // Initialize game
@@ -470,16 +523,13 @@
         }
 
         function createSandParticles() {
-            // Initial particles
             for (let i = 0; i < 10; i++) {
                 setTimeout(createSandParticle, i * 300);
             }
-            
-            // Continuous particle creation
             setInterval(createSandParticle, config.particleInterval);
         }
 
-        // Enhanced basket movement system
+        // Basket movement system
         function moveBasket(direction) {
             if (!gameState.isActive) return;
             
@@ -497,10 +547,8 @@
         function startContinuousMovement(direction) {
             if (!gameState.isActive) return;
             
-            // Stop any existing movement
-            stopContinuousMovement();
+            stopAllMovement();
             
-            // Set movement flags
             if (direction === 'left') {
                 gameState.isMovingLeft = true;
                 elements.leftBtn.classList.add('pressed');
@@ -509,7 +557,6 @@
                 elements.rightBtn.classList.add('pressed');
             }
             
-            // Start continuous movement
             gameState.moveInterval = setInterval(() => {
                 if (gameState.isMovingLeft) {
                     moveBasket('left');
@@ -531,40 +578,87 @@
             }
         }
 
-        // Smart treat creation and management
+        function stopAllMovement() {
+            stopContinuousMovement();
+            stopMoveToTarget();
+        }
+
+        // Tap-to-move functionality
+        function moveToTarget(targetX) {
+            if (!gameState.isActive) return;
+            
+            stopAllMovement();
+            
+            const gameAreaWidth = elements.gameArea.offsetWidth;
+            const targetPosition = Math.max(config.basketWidth / 2, Math.min(gameAreaWidth - config.basketWidth / 2, targetX)) - (config.basketWidth / 2);
+            
+            gameState.targetPosition = targetPosition;
+            
+            gameState.moveToTargetInterval = setInterval(() => {
+                const currentPosition = gameState.basketPosition;
+                const distance = gameState.targetPosition - currentPosition;
+                
+                if (Math.abs(distance) < config.tapMoveSpeed) {
+                    gameState.basketPosition = gameState.targetPosition;
+                    elements.basket.style.left = gameState.basketPosition + 'px';
+                    stopMoveToTarget();
+                } else {
+                    const moveAmount = distance > 0 ? config.tapMoveSpeed : -config.tapMoveSpeed;
+                    gameState.basketPosition += moveAmount;
+                    elements.basket.style.left = gameState.basketPosition + 'px';
+                }
+            }, 16);
+        }
+
+        function stopMoveToTarget() {
+            if (gameState.moveToTargetInterval) {
+                clearInterval(gameState.moveToTargetInterval);
+                gameState.moveToTargetInterval = null;
+            }
+            gameState.targetPosition = null;
+        }
+
+        function createTapIndicator(x, y) {
+            const indicator = document.createElement('div');
+            indicator.className = 'tap-indicator';
+            indicator.style.left = x + 'px';
+            indicator.style.top = y + 'px';
+            elements.gameArea.appendChild(indicator);
+            
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.remove();
+                }
+            }, 600);
+        }
+
+        // Smart treat positioning
         function calculateReachablePosition() {
             const gameAreaWidth = elements.gameArea.offsetWidth;
             const currentTime = Date.now();
-            const gameProgress = (currentTime - gameState.gameStartTime) / 60000; // 0 to 1 over 60 seconds
+            const gameProgress = (currentTime - gameState.gameStartTime) / 60000;
             
-            // Calculate maximum distance the basket can travel during treat fall time
             const avgFallTime = (config.minTreatFallTime + config.maxTreatFallTime) / 2;
             const movesPerSecond = 1000 / config.moveInterval;
             const maxDistance = config.maxBasketSpeed * movesPerSecond * avgFallTime;
             
-            // Add difficulty progression - treats become harder to reach over time
             const difficultyMultiplier = 1 + (gameProgress * config.difficultyProgression);
             const effectiveMaxDistance = maxDistance / difficultyMultiplier;
             
-            // Current basket center position
             const basketCenter = gameState.basketPosition + (config.basketWidth / 2);
             
-            // Calculate reachable range from current basket position
             const minReachable = Math.max(0, basketCenter - effectiveMaxDistance);
             const maxReachable = Math.min(gameAreaWidth - config.treatWidth, basketCenter + effectiveMaxDistance);
             
-            // Ensure minimum spacing from last treat if it exists
             let validRanges = [{min: minReachable, max: maxReachable}];
             
             if (gameState.lastTreatPosition !== null) {
                 const timeSinceLastTreat = currentTime - gameState.lastTreatTime;
                 
-                // Only enforce spacing if the last treat was recent
                 if (timeSinceLastTreat < 2000) {
                     const avoidMin = gameState.lastTreatPosition - config.minSpacing;
                     const avoidMax = gameState.lastTreatPosition + config.minSpacing;
                     
-                    // Split the valid range to avoid the last treat position
                     validRanges = [];
                     if (minReachable < avoidMin) {
                         validRanges.push({min: minReachable, max: Math.min(maxReachable, avoidMin)});
@@ -575,16 +669,13 @@
                 }
             }
             
-            // If no valid ranges, fall back to the full reachable range
             if (validRanges.length === 0 || validRanges.every(range => range.max <= range.min)) {
                 validRanges = [{min: minReachable, max: maxReachable}];
             }
             
-            // Choose a random position from the valid ranges
             const totalValidWidth = validRanges.reduce((sum, range) => sum + Math.max(0, range.max - range.min), 0);
             
             if (totalValidWidth <= 0) {
-                // Fallback to center area if calculations fail
                 return Math.max(0, Math.min(gameAreaWidth - config.treatWidth, basketCenter - 50 + Math.random() * 100));
             }
             
@@ -598,7 +689,6 @@
                 randomPoint -= rangeWidth;
             }
             
-            // Fallback
             return validRanges[0].min;
         }
 
@@ -608,15 +698,12 @@
             const treat = document.createElement('div');
             treat.className = 'falling-treat';
             
-            // Use smart positioning instead of random
             const treatPosition = calculateReachablePosition();
             treat.style.left = treatPosition + 'px';
             
-            // Store this treat's position for spacing calculations
             gameState.lastTreatPosition = treatPosition;
             gameState.lastTreatTime = Date.now();
             
-            // Slower falling speed with some variation
             const fallDuration = config.minTreatFallTime + Math.random() * (config.maxTreatFallTime - config.minTreatFallTime);
             treat.style.animationDuration = fallDuration + 's';
             
@@ -646,7 +733,6 @@
                 }
             }, 50);
 
-            // Safety cleanup
             setTimeout(() => {
                 clearInterval(collisionInterval);
                 removeTreat(treat);
@@ -689,7 +775,6 @@
             }
         }
 
-        // Celebration system
         function showCelebration(message, duration = 800) {
             elements.celebration.textContent = message;
             elements.celebration.classList.add('show');
@@ -720,10 +805,8 @@
             gameState.lastTreatPosition = null;
             gameState.lastTreatTime = 0;
             
-            // Stop any ongoing movement
-            stopContinuousMovement();
+            stopAllMovement();
             
-            // Clear existing treats
             gameState.fallingTreats.forEach(treat => removeTreat(treat));
             gameState.fallingTreats = [];
             
@@ -738,7 +821,6 @@
         }
 
         function startGameTimers() {
-            // Game countdown timer
             gameState.gameTimer = setInterval(() => {
                 gameState.timeLeft--;
                 elements.timer.textContent = gameState.timeLeft;
@@ -748,7 +830,6 @@
                 }
             }, 1000);
 
-            // Treat spawning timer
             const isMobile = window.innerWidth <= 768;
             const spawnRate = isMobile ? config.treatSpawnMobile : config.treatSpawnDesktop;
             gameState.treatSpawnTimer = setInterval(createFallingTreat, spawnRate);
@@ -756,7 +837,7 @@
 
         function endGame() {
             gameState.isActive = false;
-            stopContinuousMovement();
+            stopAllMovement();
             
             clearInterval(gameState.gameTimer);
             clearInterval(gameState.treatSpawnTimer);
@@ -802,9 +883,7 @@
                 }
             });
 
-            // Enhanced mobile button controls with hold functionality
-            
-            // Left button
+            // Mobile button controls
             elements.leftBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 startContinuousMovement('left');
@@ -865,28 +944,50 @@
                 stopContinuousMovement();
             });
 
-            // Swipe controls
-            let touchStartX = 0;
-            
-            elements.gameArea.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-
-            elements.gameArea.addEventListener('touchend', (e) => {
-                const touchEndX = e.changedTouches[0].screenX;
-                const swipeDistance = touchStartX - touchEndX;
+            // Basket path tap controls
+            elements.basketPath.addEventListener('click', (e) => {
+                if (!gameState.isActive) return;
                 
-                if (Math.abs(swipeDistance) > config.swipeThreshold) {
-                    if (swipeDistance > 0) {
-                        moveBasket('left');
-                    } else {
-                        moveBasket('right');
+                const rect = elements.gameArea.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                moveToTarget(clickX);
+                createTapIndicator(clickX, clickY);
+            });
+
+            elements.basketPath.addEventListener('touchstart', (e) => {
+                if (!gameState.isActive) return;
+                e.preventDefault();
+                
+                const rect = elements.gameArea.getBoundingClientRect();
+                const touch = e.touches[0];
+                const touchX = touch.clientX - rect.left;
+                const touchY = touch.clientY - rect.top;
+                
+                moveToTarget(touchX);
+                createTapIndicator(touchX, touchY);
+            }, { passive: false });
+
+            // Game area tap controls (backup)
+            elements.gameArea.addEventListener('click', (e) => {
+                if (!gameState.isActive) return;
+                if (e.target === elements.gameArea || e.target === elements.basketPath) {
+                    const rect = elements.gameArea.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickY = e.clientY - rect.top;
+                    
+                    // Only respond to taps in the bottom area
+                    if (clickY > elements.gameArea.offsetHeight - 120) {
+                        moveToTarget(clickX);
+                        createTapIndicator(clickX, clickY);
                     }
                 }
-            }, { passive: true });
+            });
 
             // Start button
             elements.startBtn.addEventListener('click', startGame);
+            elements.startBtn.addEventListener('touchend', startGame);
 
             // Window resize
             window.addEventListener('resize', () => {
