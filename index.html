@@ -409,7 +409,7 @@
     <div class="sand-particles" id="sandParticles"></div>
 
     <div class="header">
-        <h1>🍫 LEILA'S BEACH TREATS 🏖️</h1>
+        <h1>🍫 LEILA'S BEACH TREATS 🖖</h1>
         <div class="hucky-smucky">✨ HUCKY SMUCKY! ✨</div>
     </div>
 
@@ -457,7 +457,8 @@
             lastTreatTime: 0,
             gameStartTime: 0,
             targetPosition: null,
-            moveToTargetInterval: null
+            moveToTargetInterval: null,
+            keysPressed: new Set()
         };
 
         // DOM elements
@@ -483,7 +484,7 @@
             treatSpawnMobile: 1400,
             swipeThreshold: 30,
             particleInterval: 500,
-            moveInterval: 80,
+            moveInterval: 60,
             minTreatFallTime: 3.5,
             maxTreatFallTime: 5.5,
             maxBasketSpeed: 35,
@@ -549,6 +550,9 @@
             
             stopAllMovement();
             
+            // Move immediately first!
+            moveBasket(direction);
+            
             if (direction === 'left') {
                 gameState.isMovingLeft = true;
                 elements.leftBtn.classList.add('pressed');
@@ -557,6 +561,7 @@
                 elements.rightBtn.classList.add('pressed');
             }
             
+            // Then start the interval for continuous movement
             gameState.moveInterval = setInterval(() => {
                 if (gameState.isMovingLeft) {
                     moveBasket('left');
@@ -804,6 +809,7 @@
             gameState.gameStartTime = Date.now();
             gameState.lastTreatPosition = null;
             gameState.lastTreatTime = 0;
+            gameState.keysPressed.clear();
             
             stopAllMovement();
             
@@ -863,22 +869,55 @@
 
         // Input handling
         function setupEventListeners() {
-            // Keyboard controls
+            // Enhanced keyboard controls with immediate response
             document.addEventListener('keydown', (event) => {
                 if (!gameState.isActive) return;
                 
-                switch(event.key) {
+                const key = event.key;
+                
+                // Prevent default for arrow keys to avoid page scroll
+                if (['ArrowLeft', 'ArrowRight'].includes(key)) {
+                    event.preventDefault();
+                }
+                
+                // Check if this key is already being pressed (avoid repeat events)
+                if (gameState.keysPressed.has(key)) return;
+                gameState.keysPressed.add(key);
+                
+                switch(key) {
                     case 'ArrowLeft':
                     case 'a':
                     case 'A':
-                        event.preventDefault();
-                        moveBasket('left');
+                        startContinuousMovement('left');
                         break;
                     case 'ArrowRight':
                     case 'd':
                     case 'D':
-                        event.preventDefault();
-                        moveBasket('right');
+                        startContinuousMovement('right');
+                        break;
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                if (!gameState.isActive) return;
+                
+                const key = event.key;
+                gameState.keysPressed.delete(key);
+                
+                switch(key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        if (gameState.isMovingLeft) {
+                            stopContinuousMovement();
+                        }
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        if (gameState.isMovingRight) {
+                            stopContinuousMovement();
+                        }
                         break;
                 }
             });
@@ -987,7 +1026,10 @@
 
             // Start button
             elements.startBtn.addEventListener('click', startGame);
-            elements.startBtn.addEventListener('touchend', startGame);
+            elements.startBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame();
+            });
 
             // Window resize
             window.addEventListener('resize', () => {
